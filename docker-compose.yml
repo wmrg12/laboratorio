@@ -20,6 +20,7 @@ services:
     networks:
       - lab-net
 
+  # Servidor HTTP/1.1
   web-http1:
     build:
       context: .
@@ -32,6 +33,10 @@ services:
       - ./webservers/certs:/etc/nginx/certs:ro
     networks:
       - lab-net
+    cpus: "1.0"
+    mem_limit: 256m
+
+  # Servidor HTTP/2
   web-http2:
     image: nginx:alpine
     depends_on:
@@ -43,5 +48,8 @@ services:
       - ./webservers/certs:/etc/nginx/certs:ro
     networks:
       - lab-net
+    cpus: "1.0"
+    mem_limit: 256m
+    
 networks:
   lab-net:
