@@ -1,3 +1,4 @@
+
 services:
   db:
     image: postgres:16
@@ -7,11 +8,30 @@ services:
       POSTGRES_PASSWORD: lab
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks: [lab-net]
+    networks:
+      - lab-net
+
   backend:
     build: ./backend
-    depends_on: [db]
-    ports: ["3000:3000"]
-    networks: [lab-net]
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    networks:
+      - lab-net
+
+  web-http1:
+    build:
+      context: .
+      dockerfile: webservers/Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "443:443"
+    volumes:
+      - ./webservers/certs:/etc/nginx/certs:ro
+    networks:
+      - lab-net
+
 networks:
   lab-net:
