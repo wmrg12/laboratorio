@@ -1,0 +1,3 @@
+
+# Clave privada TLS
+webservers/certs/*.key
