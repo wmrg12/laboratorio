@@ -1,3 +1,4 @@
+
 services:
   db:
     image: postgres:16
@@ -7,22 +8,48 @@ services:
       POSTGRES_PASSWORD: lab
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks: [lab-net]
+    networks:
+      - lab-net
+
   backend:
     build: ./backend
-    depends_on: [db]
-    ports: ["3000:3000"]
-    networks: [lab-net]
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    networks:
+      - lab-net
 
+  # Servidor HTTP/1.1
   web-http1:
     image: nginx:1.27
-    depends_on: [backend]
-    ports: ["8441:443"]
+    depends_on:
+      - backend
+    ports:
+      - "8441:443"
     volumes:
       - ./webservers/http1/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./webservers/certs:/etc/nginx/certs:ro
       - ./webservers/html:/usr/share/nginx/html:ro
-    networks: [lab-net]
-    
+    networks:
+      - lab-net
+    cpus: "1.0"
+    mem_limit: 256m
+
+  # Servidor HTTP/2
+  web-http2:
+    image: nginx:alpine
+    depends_on:
+      - backend
+    ports:
+      - "8443:443"
+    volumes:
+      - ./webservers/http2/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./webservers/certs:/etc/nginx/certs:ro
+    networks:
+      - lab-net
+    cpus: "1.0"
+    mem_limit: 256m
+
 networks:
   lab-net:
