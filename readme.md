@@ -58,4 +58,4 @@ curl localhost:3000/items
 curl localhost:3000/health
 docker compose logs backend
 
-[]{"ok":true}backend-1  | GET /items 200 231.7ms
+{"ok":true}backend-1  | GET /health 200 10.1ms
