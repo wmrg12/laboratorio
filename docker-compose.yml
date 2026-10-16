@@ -17,6 +17,8 @@ services:
       - db
     ports:
       - "3000:3000"
+    environment:
+      CORS_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173"
     networks:
       - lab-net
 
@@ -45,6 +47,21 @@ services:
       - "8443:443"
     volumes:
       - ./webservers/http2/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./webservers/certs:/etc/nginx/certs:ro
+    networks:
+      - lab-net
+    cpus: "1.0"
+    mem_limit: 256m
+  # Servidor HTTP/3 sobre QUIC
+  web-http3:
+    image: macbre/nginx-http3:latest
+    depends_on:
+      - backend
+    ports:
+      - "8444:443/tcp"
+      - "8444:443/udp"
+    volumes:
+      - ./webservers/http3/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./webservers/certs:/etc/nginx/certs:ro
     networks:
       - lab-net
