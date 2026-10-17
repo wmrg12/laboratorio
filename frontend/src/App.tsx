@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import FormularioPrueba from "./components/FormularioPrueba";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
   const [protocolo, setProtocolo] = useState("...");
@@ -23,6 +24,7 @@ export default function App() {
       <p>Protocolo de esta página: <b>{protocolo}</b></p>
       <p>API: <b>{api}</b></p>
       <FormularioPrueba protocolo={protocolo} />
+      <Dashboard />
     </main>
   );
 }

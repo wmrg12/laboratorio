@@ -14,3 +14,17 @@ export async function enviarConfig(config: PruebaConfig) {
     if (!r.ok) throw new Error(`Error ${r.status}`);
     return r.json();
 }
+
+export type Resumen = {
+    protocolo: string;
+    pruebas: number;
+    latencia_ms: number;
+    throughput: number;
+    conexiones: number;
+};
+
+export const obtenerResumen = async (): Promise<Resumen[]> => {
+    const r = await fetch("/api/resultados/resumen");
+    if (!r.ok) throw new Error(`Error ${r.status}`);
+    return r.json();
+};
