@@ -1,6 +1,7 @@
 
 import { Elysia } from "elysia";
 import { itemsRoutes } from "./routes/items.routes";
+import { pruebasRoutes } from "./routes/pruebas.routes";
 import { cors } from "@elysiajs/cors";
 import { logger } from "./middleware/logger";
 
@@ -35,6 +36,7 @@ new Elysia()
     )
     .get("/health", () => ({ ok: true }))
     .use(itemsRoutes)
+    .use(pruebasRoutes)
     .listen({
         port: 3000,
         hostname: "0.0.0.0",
