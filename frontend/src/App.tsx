@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import FormularioPrueba from "./components/FormularioPrueba";
+import TransferenciaPrueba from "./components/TransferenciaPrueba";
 import Dashboard from "./pages/Dashboard";
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
       <p>Protocolo de esta página: <b>{protocolo}</b></p>
       <p>API: <b>{api}</b></p>
       <FormularioPrueba protocolo={protocolo} />
+      <TransferenciaPrueba />
       <Dashboard />
     </main>
   );
