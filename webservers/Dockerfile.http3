@@ -2,12 +2,8 @@ FROM oven/bun:1 AS build
 WORKDIR /app
 COPY frontend/package.json frontend/bun.lock* ./
 RUN bun install
-COPY frontend/ .
+COPY frontend/ ./
 RUN bun run build
 
 FROM macbre/nginx-http3:latest
-USER root
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY webservers/certs/ /etc/nginx/certs/
-RUN chmod 644 /etc/nginx/certs/server.key /etc/nginx/certs/server.crt \
-    && chmod 755 /etc/nginx/certs
