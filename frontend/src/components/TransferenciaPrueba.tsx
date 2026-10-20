@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 const TAMANOS = [
     { etiqueta: "1 KB", bytes: 1024 },
@@ -96,7 +96,7 @@ export default function TransferenciaPrueba() {
                 ⬆ Subir
             </button>
 
-            {cargando && <p>⏳ Transfiriendo...</p>}
+            {cargando && <p>Transfiriendo...</p>}
             {error && <p style={{ color: "red" }}>❌ {error}</p>}
             {resultado && (
                 <table>

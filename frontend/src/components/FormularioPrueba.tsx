@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { enviarConfig } from "../services/api";
+import { useState } from 'react';
 
-const PUERTOS: Record<string, number> = { "http/1.1": 8441, h2: 8442, h3: 8443 };
+import { enviarConfig } from '../services/api';
+
+const PUERTOS: Record<string, number> = { "http/1.1": 8441, h2: 8443, h3: 8444 };
 const TAMANOS = [
     { etiqueta: "1 KB", bytes: 1024 },
     { etiqueta: "100 KB", bytes: 102400 },
