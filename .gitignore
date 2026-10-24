@@ -3,3 +3,4 @@
 webservers/certs/*.key
 /webservers/certs/http3.crt
 /webservers/certs/http3.key
+results/*.raw

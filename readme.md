@@ -59,3 +59,13 @@ curl localhost:3000/health
 docker compose logs backend
 
 {"ok":true}backend-1  | GET /health 200 10.1ms
+
+# inciar netem
+
+Dar perimisos: chmod +x netem/netem.sh
+
+cd ..
+./netem/netem.sh aplicar latencia
+./netem/netem.sh ver
+for i in 1 2 3; do curl -k -s -o /dev/null -w "%{time_total}\n" https://localhost:8441/api/health; done
+./netem/netem.sh quitar

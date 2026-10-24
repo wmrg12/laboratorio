@@ -1,0 +1,1 @@
+{"protocolo":"http3","metodo":"post","vus":10,"tamano_bytes":102400,"duracion_s":10,"reqs":1073,"fallidas":0,"otro_protocolo":0,"registros_invalidos":1,"rps":107.3,"lat_avg_ms":12.07,"lat_p95_ms":37.057,"lat_max_ms":142.435,"mb_s":11.0}
