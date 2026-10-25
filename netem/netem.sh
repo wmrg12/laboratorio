@@ -1,5 +1,6 @@
 #!/bin/bash
 # Uso: ./netem/netem.sh aplicar <latencia|perdida|mixto> | quitar | ver
+set -euo pipefail
 
 SERVIDORES="laboratorio-web-http1-1 laboratorio-web-http2-1 laboratorio-web-http3-1"
 
@@ -13,7 +14,7 @@ for c in $SERVIDORES; do
   case "$1" in
     aplicar)
       case "$2" in
-        latencia) tcx $c qdisc replace dev eth0 root netem delay 100ms 10ms ;;
+        latencia) tcx $c qdisc replace dev eth0 root netem delay 100ms 10ms distribution normal ;;
         perdida)  tcx $c qdisc replace dev eth0 root netem loss 2% ;;
         mixto)    tcx $c qdisc replace dev eth0 root netem delay 100ms 10ms loss 2% ;;
         *) echo "Perfil desconocido: $2"; exit 1 ;;

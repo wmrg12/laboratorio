@@ -1,6 +1,18 @@
 #!/bin/bash
 # Uso: ./tests/k6/run.sh <http1|http2> <get|post> <vus> [tamaño_bytes] [duración]
-P=$1; M=$2; VUS=$3; SIZE=${4:-102400}; DUR=${5:-10s}
+set -euo pipefail
+
+P=${1:-}; M=${2:-}; VUS=${3:-}; SIZE=${4:-102400}; DUR=${5:-10s}
+
+if [[ "$M" != "get" && "$M" != "post" ]]; then
+  echo "Método inválido: '$M'. Usa get o post."
+  exit 1
+fi
+
+if ! [[ "$VUS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "VUS inválido: '$VUS'. Debe ser un entero positivo."
+  exit 1
+fi
 
 case $P in
   http1) PROTO=HTTP/1.1 ;;

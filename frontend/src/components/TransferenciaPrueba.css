@@ -1,0 +1,18 @@
+/* TransferenciaPrueba.css — estilos específicos del panel de transferencia */
+/* El sistema base (panel, form-row, field-*, btn-*, progress-bar-*, transf-*) está en App.css */
+
+#panel-transferencia {
+  border-top: 3px solid #6366f1;
+}
+
+.btn-download { color: #6366f1; border-color: rgba(99,102,241,0.4); }
+.btn-download:hover:not(:disabled) {
+  background: rgba(99,102,241,0.08);
+  box-shadow: 0 4px 14px rgba(99,102,241,0.2);
+}
+
+.btn-upload { color: #22c55e; border-color: rgba(34,197,94,0.4); }
+.btn-upload:hover:not(:disabled) {
+  background: rgba(34,197,94,0.08);
+  box-shadow: 0 4px 14px rgba(34,197,94,0.2);
+}
