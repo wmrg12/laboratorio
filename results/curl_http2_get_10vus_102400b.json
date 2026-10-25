@@ -1,1 +1,0 @@
-{"protocolo":"http2","metodo":"get","vus":10,"tamano_bytes":102400,"duracion_s":10,"reqs":2789,"fallidas":0,"otro_protocolo":0,"registros_invalidos":4,"rps":278.9,"lat_avg_ms":5.17,"lat_p95_ms":10.323,"lat_max_ms":138.343,"mb_s":28.6}

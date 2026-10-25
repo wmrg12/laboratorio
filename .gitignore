@@ -5,3 +5,4 @@ webservers/certs/*.key
 /webservers/certs/http3.key
 results/*.raw
 results/captures/*.pcapng
+/results/
