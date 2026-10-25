@@ -27,6 +27,28 @@ export const listarResultados = (protocolo?: string) =>
         ? sql`SELECT * FROM resultados WHERE protocolo = ${protocolo} ORDER BY id DESC`
         : sql`SELECT * FROM resultados ORDER BY id DESC`;
 
+export const obtenerResultado = (id: number) =>
+    sql`SELECT * FROM resultados WHERE id = ${id}`;
+
+export const actualizarResultado = async (id: number, r: Partial<Resultado>) => {
+    const [actual] = await sql`
+    UPDATE resultados
+    SET protocolo     = COALESCE(${r.protocolo ?? null}, protocolo),
+        metodo        = COALESCE(${r.metodo ?? null}, metodo),
+        tamano_bytes  = COALESCE(${r.tamano_bytes ?? null}, tamano_bytes),
+        concurrencia  = COALESCE(${r.concurrencia ?? null}, concurrencia),
+        conexiones    = COALESCE(${r.conexiones ?? null}, conexiones),
+        latencia_ms   = COALESCE(${r.latencia_ms ?? null}, latencia_ms),
+        throughput    = COALESCE(${r.throughput ?? null}, throughput),
+        origen        = COALESCE(${r.origen ?? null}, origen)
+    WHERE id = ${id}
+    RETURNING *`;
+    return actual;
+};
+
+export const eliminarResultado = (id: number) =>
+    sql`DELETE FROM resultados WHERE id = ${id} RETURNING *`;
+
 export const resumenPorProtocolo = () => sql`
   SELECT protocolo,
          COUNT(*)::int AS pruebas,
