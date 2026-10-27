@@ -35,6 +35,18 @@ case "$PERFIL" in
   *) echo "Perfil inválido: $PERFIL. Usa latencia, perdida, mixto o ninguno."; exit 1 ;;
 esac
 
+# ─── Detectar Python 3 compatible con Windows y Linux ──────────────────────────
+if python3 -c 'import json; import sys; assert sys.version_info.major == 3' >/dev/null 2>&1; then
+  PYTHON_CMD="python3"
+elif python -c 'import json; import sys; assert sys.version_info.major == 3' >/dev/null 2>&1; then
+  PYTHON_CMD="python"
+else
+  echo "[ERROR] Se requiere Python 3 para procesar las métricas." >&2
+  exit 1
+fi
+
+echo "[INFO] Python detectado: $PYTHON_CMD"
+
 # ─── Colores ───────────────────────────────────────────────────────────────────
 GRN="\033[32m"; YLW="\033[33m"; RED="\033[31m"; BLU="\033[34m"; RST="\033[0m"
 info()    { echo -e "${BLU}[INFO]${RST}  $*"; }
@@ -46,14 +58,14 @@ error()   { echo -e "${RED}[ERROR]${RST} $*" >&2; }
 aplicar_perfil() {
   if [[ "$PERFIL" != "ninguno" ]]; then
     info "Aplicando perfil de red: $PERFIL"
-    bash "$(dirname "$0")/../netem/netem.sh" aplicar "$PERFIL"
+    bash "$(dirname "$0")/netem/netem.sh" aplicar "$PERFIL"
   fi
 }
 
 quitar_perfil() {
   if [[ "$PERFIL" != "ninguno" ]]; then
     info "Quitando perfil de red..."
-    bash "$(dirname "$0")/../netem/netem.sh" quitar 2>/dev/null || true
+    bash "$(dirname "$0")/netem/netem.sh" quitar 2>/dev/null || true
   fi
 }
 trap quitar_perfil EXIT
@@ -78,8 +90,10 @@ subir_resultado() {
 
   if [[ "$http_code" == "200" || "$http_code" == "201" ]]; then
     ok "  → Resultado subido (HTTP $http_code)"
+    return 0
   else
     warn "  → API respondió HTTP $http_code"
+    return 1
   fi
 }
 
@@ -103,22 +117,44 @@ ejecutar_k6() {
     return 1
   fi
 
+  # Validar que k6 no haya registrado solicitudes ni checks fallidos
+  if ! "$PYTHON_CMD" - "$result_file" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as archivo:
+    metricas = json.load(archivo)["metrics"]
+
+checks_fallidos = metricas["checks"]["fails"]
+tasa_errores = metricas["http_req_failed"]["value"]
+solicitudes = metricas["http_reqs"]["count"]
+
+print(f"[INFO] Validacion k6: {solicitudes} solicitudes, {checks_fallidos} checks fallidos, tasa de errores {tasa_errores}")
+
+if checks_fallidos > 0 or tasa_errores > 0 or solicitudes <= 0:
+    sys.exit(1)
+PY
+  then
+    warn "La prueba k6 contiene errores o metricas invalidas: $result_file"
+    return 1
+  fi
+
   # Extraer métricas del JSON de k6
   local lat throughput
-  lat=$(python3 -c "
+  lat=$("$PYTHON_CMD" -c "
 import json, sys
 d = json.load(open('$result_file'))
-print(round(d['metrics']['http_req_duration']['values']['avg'], 2))
-" 2>/dev/null) || lat=0
+print(round(d['metrics']['http_req_duration']['avg'], 2))
+" 2>/dev/null) || { warn "No se pudo leer la latencia de $result_file"; return 1; }
 
-  throughput=$(python3 -c "
+  throughput=$("$PYTHON_CMD" -c "
 import json, sys
 d = json.load(open('$result_file'))
 # bytes/s → MB/s
-rps = d['metrics']['http_reqs']['values']['rate']
+rps = d['metrics']['http_reqs']['rate']
 size = $SIZE
 print(round(rps * size / 1e6, 2))
-" 2>/dev/null) || throughput=0
+" 2>/dev/null) || { warn "No se pudo leer el throughput de $result_file"; return 1; }
 
   # Mapear protocolo al nombre de la API
   local proto_api
@@ -152,18 +188,47 @@ ejecutar_h3() {
     return 1
   fi
 
-  local lat throughput
-  lat=$(python3 -c "
+    # Validar que HTTP/3 haya generado resultados correctos
+  if ! "$PYTHON_CMD" - "$result_file" <<'PY'
 import json
-d = json.load(open('$result_file'))
-print(d.get('lat_avg_ms', 0))
-" 2>/dev/null) || lat=0
+import sys
 
-  throughput=$(python3 -c "
+with open(sys.argv[1], encoding="utf-8") as archivo:
+    datos = json.load(archivo)
+
+reqs = datos["reqs"]
+fallidas = datos["fallidas"]
+otro_protocolo = datos["otro_protocolo"]
+registros_invalidos = datos["registros_invalidos"]
+
+print(f"[INFO] Validacion HTTP/3: {reqs} solicitudes, "
+      f"{fallidas} fallidas, "
+      f"{otro_protocolo} con protocolo incorrecto, "
+      f"{registros_invalidos} registros invalidos")
+
+if (reqs <= 0 or
+    fallidas != 0 or
+    otro_protocolo != 0 or
+    registros_invalidos != 0):
+    sys.exit(1)
+PY
+  then
+    warn "La prueba HTTP/3 contiene errores o registros invalidos: $result_file"
+    return 1
+  fi
+
+  local lat throughput
+  lat=$("$PYTHON_CMD" -c "
 import json
 d = json.load(open('$result_file'))
-print(d.get('mb_s', 0))
-" 2>/dev/null) || throughput=0
+print(d['lat_avg_ms'])
+" 2>/dev/null) || { warn "No se pudo leer la latencia de $result_file"; return 1; }
+
+  throughput=$("$PYTHON_CMD" -c "
+import json
+d = json.load(open('$result_file'))
+print(d['mb_s'])
+" 2>/dev/null) || { warn "No se pudo leer el throughput de $result_file"; return 1; }
 
   local metodo_api
   metodo_api=$(echo "$m" | tr '[:lower:]' '[:upper:]')

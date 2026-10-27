@@ -27,39 +27,41 @@ else
 
 fi
 
-# Preparar múltiples solicitudes para cada usuario virtual
-for i in $(seq 5000); do
-  echo 'output = "/dev/null"'
-  echo "url = \"$URL\""
-done >> /tmp/cfg
+# Preparar una solicitud por ejecución de curl
+echo 'output = "/dev/null"' >> /tmp/cfg
+echo "url = \"$URL\"" >> /tmp/cfg
+
+# Señal de finalización de la prueba
+STOP_FILE=/tmp/h3_stop
+rm -f "$STOP_FILE"
+
+( sleep "$DUR"; : > "$STOP_FILE" ) &
 
 # Ejecutar usuarios virtuales en paralelo
 for v in $(seq "$VUS"); do
+  (
+    PART="${OUT}.${v}.part"
+    : > "$PART"
 
-  timeout "$DUR" curl \
-    -k \
-    -s \
-    "$FLAG" \
-    -K /tmp/cfg \
-    -w '%{stderr}%{http_version} %{http_code} %{time_total} %{size_download} %{size_upload}\n' \
-    2> "${OUT}.${v}.part" &
-
+    # No iniciar nuevas solicitudes al finalizar el tiempo
+    while [ ! -f "$STOP_FILE" ]; do
+      curl -k -sS "$FLAG" \
+        -K /tmp/cfg \
+        --max-time "$((DUR + 10))" \
+        -w '%{http_version} %{http_code} %{time_total} %{size_download} %{size_upload}\n' \
+        >> "$PART" 2>> "${OUT}.${v}.err" || true
+    done
+  ) &
 done
 
-# Esperar a que finalicen todos los procesos
+# Esperar que terminen las solicitudes activas
 wait
 
-# Crear archivo de resultados vacío
+# Unificar resultados
 : > "${OUT}.raw"
 
-# Unir resultados respetando los saltos de línea
 for part in "${OUT}".*.part; do
-
-  if [ -f "$part" ]; then
-    awk 'NF { print }' "$part" >> "${OUT}.raw"
-  fi
-
+  [ -f "$part" ] && cat "$part" >> "${OUT}.raw"
 done
 
-# Eliminar archivos temporales de cada usuario
 rm -f "${OUT}".*.part
