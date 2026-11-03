@@ -39,6 +39,29 @@ bun add elysia @elysiajs/cors postgres
 # inciar DockerC
 docker compose up --build
 
+# Flujo de pruebas desde la interfaz
+
+Abrí uno de los Nginx del laboratorio, nunca el puerto directo del backend:
+
+- `https://localhost:8441` para HTTP/1.1
+- `https://localhost:8443` para HTTP/2
+- `https://localhost:8444` para HTTP/3
+
+El selector de protocolo navega al puerto correspondiente. Al elegir GET o POST,
+tamaño y concurrencia, **Ejecutar prueba** envía solicitudes reales y simultáneas
+desde el navegador al endpoint Nginx `/api/archivos`. Se miden los bytes
+transferidos, la duración de cada solicitud, la duración total y el throughput.
+Solo si todas las solicitudes terminan correctamente se registra el promedio de
+latencia y throughput en `POST /api/resultados`; el dashboard los muestra al
+pulsar **Actualizar**.
+
+La aplicación valida que el navegador haya negociado el mismo protocolo que se
+seleccionó. Si HTTP/3 no se negocia (por ejemplo por falta de soporte del
+navegador o por un certificado no confiable), no guarda un resultado como H3.
+La ruta `POST /pruebas` se conserva por compatibilidad, pero no ejecuta cargas:
+el navegador es quien debe generar el tráfico para poder medir HTTP/2 y HTTP/3
+de forma real.
+
 --verificar en otra terminal 
 
 $ curl localhost:3000/health

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Settings, Play, Loader2, CheckCircle, AlertCircle } from "lucide-react";
-import { enviarConfig } from "../services/api";
+import { crearResultado } from "../services/api";
+import { ejecutarPruebaReal, type MedicionPruebaReal } from "../services/ejecutarPrueba";
 import "./FormularioPrueba.css";
 
 const PUERTOS: Record<string, number> = { "http/1.1": 8441, h2: 8443, h3: 8444 };
@@ -18,11 +19,18 @@ const PROTO_LABEL: Record<string, string> = {
     "h3":       "HTTP/3",
 };
 
-export default function FormularioPrueba({ protocolo }: { protocolo: string }) {
+type Protocolo = "http/1.1" | "h2" | "h3";
+
+type Props = {
+    protocoloObjetivo?: Protocolo;
+    protocoloReal: Protocolo | "desconocido" | "...";
+};
+
+export default function FormularioPrueba({ protocoloObjetivo, protocoloReal }: Props) {
     const [metodo, setMetodo] = useState<"GET" | "POST">("GET");
     const [tamano, setTamano] = useState(1024);
     const [concurrencia, setConcurrencia] = useState(10);
-    const [respuesta, setRespuesta] = useState<object | null>(null);
+    const [respuesta, setRespuesta] = useState<MedicionPruebaReal | null>(null);
     const [error, setError] = useState("");
     const [enviando, setEnviando] = useState(false);
 
@@ -31,12 +39,43 @@ export default function FormularioPrueba({ protocolo }: { protocolo: string }) {
     };
 
     const enviar = async () => {
+        if (!protocoloObjetivo) {
+            setError("Abrí la aplicación mediante uno de los puertos del laboratorio (8441, 8443 o 8444).");
+            return;
+        }
+        if (protocoloReal !== protocoloObjetivo) {
+            setError(`El navegador negoció ${protocoloReal}, pero este servidor debe usar ${PROTO_LABEL[protocoloObjetivo]}. No se registró ningún resultado.`);
+            return;
+        }
+        if (!Number.isInteger(concurrencia) || concurrencia < 1 || concurrencia > 200) {
+            setError("La concurrencia debe ser un entero entre 1 y 200.");
+            return;
+        }
+
         setEnviando(true);
         setError("");
         setRespuesta(null);
         try {
-            const r = await enviarConfig({ protocolo, metodo, tamano_bytes: tamano, concurrencia });
-            setRespuesta(r);
+            const medicion = await ejecutarPruebaReal({
+                protocolo: protocoloObjetivo,
+                metodo,
+                tamanoBytes: tamano,
+                concurrencia,
+            });
+
+            await crearResultado({
+                protocolo: protocoloObjetivo,
+                metodo,
+                tamano_bytes: tamano,
+                concurrencia,
+                // El esquema existente llama conexiones a este valor. Representa
+                // solicitudes simultáneas, igual que los scripts de matriz.
+                conexiones: concurrencia,
+                latencia_ms: medicion.latenciaPromedioMs,
+                throughput: medicion.throughputMBps,
+                origen: `navegador:${location.port}`,
+            });
+            setRespuesta(medicion);
         } catch (e) {
             setError(String(e));
         } finally {
@@ -50,7 +89,7 @@ export default function FormularioPrueba({ protocolo }: { protocolo: string }) {
                 <Settings size={20} strokeWidth={1.8} className="panel-icon-svg" />
                 <div>
                     <h2 className="panel-title">Configurar prueba</h2>
-                    <p className="panel-sub">Ajustá los parámetros y enviá la configuración al servidor</p>
+                    <p className="panel-sub">Ejecutá tráfico real, medilo y guardá el resultado en el dashboard</p>
                 </div>
             </div>
 
@@ -61,9 +100,10 @@ export default function FormularioPrueba({ protocolo }: { protocolo: string }) {
                     <select
                         id="select-protocolo"
                         className="field-select"
-                        value={protocolo}
+                        value={protocoloObjetivo ?? ""}
                         onChange={(e) => cambiarProtocolo(e.target.value)}
                     >
+                        {!protocoloObjetivo && <option value="" disabled>Elegí un puerto del laboratorio</option>}
                         {Object.keys(PUERTOS).map((p) => (
                             <option key={p} value={p}>{PROTO_LABEL[p] ?? p}</option>
                         ))}
@@ -128,8 +168,8 @@ export default function FormularioPrueba({ protocolo }: { protocolo: string }) {
                         disabled={enviando}
                     >
                         {enviando
-                            ? <><Loader2 size={15} className="spin" /> Enviando…</>
-                            : <><Play size={14} strokeWidth={2.5} /> Enviar</>
+                            ? <><Loader2 size={15} className="spin" /> Ejecutando…</>
+                            : <><Play size={14} strokeWidth={2.5} /> Ejecutar prueba</>
                         }
                     </button>
                 </div>
@@ -146,9 +186,17 @@ export default function FormularioPrueba({ protocolo }: { protocolo: string }) {
                 <div className="panel-alert panel-alert--ok">
                     <div className="alert-row">
                         <CheckCircle size={15} strokeWidth={2} />
-                        <span>Configuración recibida</span>
+                        <span>Prueba ejecutada y resultado registrado</span>
                     </div>
-                    <pre className="panel-pre">{JSON.stringify(respuesta, null, 2)}</pre>
+                    <pre className="panel-pre">{JSON.stringify({
+                        protocolo: protocoloObjetivo,
+                        metodo,
+                        solicitudes_concurrentes: concurrencia,
+                        bytes_transferidos: respuesta.bytesTransferidos,
+                        latencia_promedio_ms: Number(respuesta.latenciaPromedioMs.toFixed(2)),
+                        tiempo_total_ms: Number(respuesta.duracionTotalMs.toFixed(2)),
+                        throughput_mb_s: Number(respuesta.throughputMBps.toFixed(4)),
+                    }, null, 2)}</pre>
                 </div>
             )}
         </section>

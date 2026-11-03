@@ -192,7 +192,10 @@ export default function Dashboard() {
             .finally(() => setCargando(false));
     }, []);
 
-    useEffect(() => { cargar(); }, [cargar]);
+    useEffect(() => {
+        const inicio = window.setTimeout(cargar, 0);
+        return () => window.clearTimeout(inicio);
+    }, [cargar]);
 
     return (
         <section className="dashboard" id="dashboard">

@@ -17,14 +17,26 @@ const PROTO_LABEL: Record<string, string> = {
   "http/1.1": "HTTP/1.1",
 };
 
+const PROTOCOLO_POR_PUERTO: Record<string, "http/1.1" | "h2" | "h3"> = {
+  "8441": "http/1.1",
+  "8443": "h2",
+  "8444": "h3",
+};
+
+function normalizarProtocolo(valor: string): "http/1.1" | "h2" | "h3" | "desconocido" {
+  if (valor === "http/1.1") return "http/1.1";
+  if (valor === "h2") return "h2";
+  if (valor.startsWith("h3")) return "h3";
+  return "desconocido";
+}
+
 export default function App() {
-  const [protocolo, setProtocolo] = useState("...");
   const [api, setApi] = useState<"conectada" | "error" | "sin respuesta" | "...">("...");
+  const [nav] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+  const protocolo = normalizarProtocolo(nav?.nextHopProtocol ?? "");
+  const protocoloObjetivo = PROTOCOLO_POR_PUERTO[location.port];
 
   useEffect(() => {
-    const [nav] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
-    setProtocolo(nav?.nextHopProtocol ?? "desconocido");
-
     fetch("/api/health")
       .then((r) => r.json())
       .then((d) => setApi(d.ok ? "conectada" : "error"))
@@ -54,7 +66,7 @@ export default function App() {
               style={{ "--pill-color": protoColor } as React.CSSProperties}
             >
               <Wifi size={13} strokeWidth={2.5} style={{ color: protoColor, flexShrink: 0 }} />
-              {protocolo === "..." ? "Detectando…" : protoLabel}
+              {protocolo === "desconocido" ? "Protocolo desconocido" : protoLabel}
             </div>
 
             {/* Pill de API */}
@@ -79,7 +91,10 @@ export default function App() {
 
       {/* ── Main content ───────────────────────────────────────────────────── */}
       <main id="app-main">
-        <FormularioPrueba protocolo={protocolo} />
+        <FormularioPrueba
+          protocoloObjetivo={protocoloObjetivo}
+          protocoloReal={protocolo}
+        />
         <TransferenciaPrueba />
         <Dashboard />
       </main>
