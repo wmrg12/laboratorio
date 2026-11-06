@@ -36,8 +36,8 @@ services:
       - ./webservers/certs:/etc/nginx/certs:ro
     networks:
       - lab-net
-    cpus: "1.0"
-    mem_limit: 256m
+    cpus: "2.0"
+    mem_limit: 512m
 
   # Servidor HTTP/2
   web-http2:
@@ -53,8 +53,8 @@ services:
       - ./webservers/certs:/etc/nginx/certs:ro
     networks:
       - lab-net
-    cpus: "1.0"
-    mem_limit: 256m
+    cpus: "2.0"
+    mem_limit: 512m
 
   # Servidor HTTP/3 sobre QUIC
   web-http3:
@@ -72,8 +72,8 @@ services:
       - ./webservers/certs:/etc/nginx/certs:ro
     networks:
       - lab-net
-    cpus: "1.0"
-    mem_limit: 256m
+    cpus: "2.0"
+    mem_limit: 512m
 
 networks:
   lab-net:
