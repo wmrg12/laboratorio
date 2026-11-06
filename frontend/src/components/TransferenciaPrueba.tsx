@@ -25,6 +25,17 @@ function formatBytes(n: number) {
     return `${n} B`;
 }
 
+function guardarDescarga(blob: Blob, nombre: string) {
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = nombre;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+}
+
 export default function TransferenciaPrueba() {
     const [tamano, setTamano] = useState(1_048_576);
     const [resultado, setResultado] = useState<ResultadoTransf | null>(null);
@@ -64,14 +75,20 @@ export default function TransferenciaPrueba() {
                         const data = await r.json();
                         throw new Error(data.error ?? `Error ${r.status}`);
                     }
-                    const buf = await r.arrayBuffer();
+                    const blob = await r.blob();
                     const tiempo_ms = performance.now() - inicio;
+                    if (blob.size !== tamano) {
+                        throw new Error(`Se recibieron ${blob.size} bytes; se esperaban ${tamano}`);
+                    }
+                    const nombre = r.headers.get("Content-Disposition")
+                        ?.match(/filename="?([^";]+)"?/i)?.[1] ?? `archivo-${tamano}.bin`;
+                    guardarDescarga(blob, nombre);
                     limpiar({
                         operacion: "Descarga",
-                        bytes: buf.byteLength,
+                        bytes: blob.size,
                         tiempo_ms: Math.round(tiempo_ms),
                         throughput_mbps: parseFloat(
-                            ((buf.byteLength / 1_048_576) / (tiempo_ms / 1000)).toFixed(2)
+                            ((blob.size / 1_048_576) / (tiempo_ms / 1000)).toFixed(2)
                         ),
                     });
                 })

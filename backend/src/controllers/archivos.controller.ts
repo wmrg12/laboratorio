@@ -12,6 +12,8 @@ export const descargar = ({ params, set }: any) => {
     return new Response(generarArchivo(params.tamano), {
         headers: {
             "Content-Type": "application/octet-stream",
+            "Content-Length": String(params.tamano),
+            "Content-Disposition": `attachment; filename="archivo-${params.tamano}.bin"`,
             "Cache-Control": "no-store",
         },
     });
