@@ -1,122 +1,88 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { Zap, Circle, Wifi } from "lucide-react";
+import FormularioPrueba from "./components/FormularioPrueba";
+import TransferenciaPrueba from "./components/TransferenciaPrueba";
+import Dashboard from "./pages/Dashboard";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+const PROTO_COLOR: Record<string, string> = {
+  "h3":       "#22c55e",
+  "h2":       "#6366f1",
+  "http/1.1": "#f97316",
+};
+
+const PROTO_LABEL: Record<string, string> = {
+  "h3":       "HTTP/3 · QUIC",
+  "h2":       "HTTP/2",
+  "http/1.1": "HTTP/1.1",
+};
+
+export default function App() {
+  const [protocolo, setProtocolo] = useState("...");
+  const [api, setApi] = useState<"conectada" | "error" | "sin respuesta" | "...">("...");
+
+  useEffect(() => {
+    const [nav] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+    setProtocolo(nav?.nextHopProtocol ?? "desconocido");
+
+    fetch("/api/health")
+      .then((r) => r.json())
+      .then((d) => setApi(d.ok ? "conectada" : "error"))
+      .catch(() => setApi("sin respuesta"));
+  }, []);
+
+  const protoColor = PROTO_COLOR[protocolo] ?? "#888";
+  const protoLabel = PROTO_LABEL[protocolo] ?? protocolo.toUpperCase();
+
+  const apiOk    = api === "conectada";
+  const apiLoading = api === "...";
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div id="app-layout">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <header id="app-header">
+        <div id="header-inner">
+          <div id="header-brand">
+            <Zap id="header-logo-icon" size={22} strokeWidth={2.5} />
+            <h1 id="header-title">Laboratorio HTTP</h1>
+          </div>
+          <div id="header-pills">
+            {/* Pill de protocolo */}
+            <div
+              id="pill-proto"
+              className="status-pill"
+              style={{ "--pill-color": protoColor } as React.CSSProperties}
+            >
+              <Wifi size={13} strokeWidth={2.5} style={{ color: protoColor, flexShrink: 0 }} />
+              {protocolo === "..." ? "Detectando…" : protoLabel}
+            </div>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+            {/* Pill de API */}
+            <div
+              id="pill-api"
+              className={`status-pill ${apiOk ? "pill-ok" : apiLoading ? "" : "pill-err"}`}
+            >
+              <Circle
+                size={8}
+                strokeWidth={0}
+                style={{
+                  fill: apiOk ? "#22c55e" : apiLoading ? "#888" : "#ef4444",
+                  filter: apiOk ? "drop-shadow(0 0 3px rgba(34,197,94,.6))" : "none",
+                  flexShrink: 0,
+                }}
+              />
+              API {api}
+            </div>
+          </div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* ── Main content ───────────────────────────────────────────────────── */}
+      <main id="app-main">
+        <FormularioPrueba protocolo={protocolo} />
+        <TransferenciaPrueba />
+        <Dashboard />
+      </main>
+    </div>
+  );
 }
-
-export default App

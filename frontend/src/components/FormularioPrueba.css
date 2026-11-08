@@ -1,0 +1,7 @@
+/* FormularioPrueba.css — estilos específicos del panel de configuración */
+/* El sistema base (panel, form-row, field-*, btn-*) está definido en App.css */
+
+#panel-configurar {
+  /* Acento sutil en el borde superior */
+  border-top: 3px solid var(--accent);
+}
