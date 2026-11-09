@@ -194,6 +194,11 @@ export default function Dashboard() {
 
     useEffect(() => { cargar(); }, [cargar]);
 
+    useEffect(() => {
+        window.addEventListener("resultados-importados", cargar);
+        return () => window.removeEventListener("resultados-importados", cargar);
+    }, [cargar]);
+
     return (
         <section className="dashboard" id="dashboard">
             <div className="dashboard-header">
@@ -226,8 +231,8 @@ export default function Dashboard() {
                     <Inbox size={32} strokeWidth={1.5} className="dashboard-empty-icon" />
                     <p>Aún no hay resultados en el sistema.</p>
                     <p className="dashboard-empty-hint">
-                        Ejecutá <code>./tests/importar.sh</code> para cargar los resultados existentes,
-                        o <code>./tests/matriz.sh</code> para correr la matriz completa.
+                        Importá los JSON generados por las pruebas desde el panel anterior,
+                        o ejecutá <code>./tests/matriz.sh</code> para correr la matriz completa.
                     </p>
                 </div>
             )}

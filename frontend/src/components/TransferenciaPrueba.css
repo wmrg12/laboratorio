@@ -16,3 +16,78 @@
   background: rgba(34,197,94,0.08);
   box-shadow: 0 4px 14px rgba(34,197,94,0.2);
 }
+
+.archivo-dropzone {
+  position: relative;
+  min-height: 104px;
+  box-sizing: border-box;
+  border: 1px dashed rgba(99, 102, 241, 0.52);
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.045);
+  color: var(--text-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 16px 48px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .15s;
+}
+
+.archivo-dropzone:hover,
+.archivo-dropzone:focus-visible,
+.archivo-dropzone--active {
+  outline: none;
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.archivo-dropzone--active { transform: scale(1.005); }
+.archivo-input { display: none; }
+
+.archivo-meta {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.archivo-nombre {
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archivo-limpiar {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.archivo-limpiar:hover:not(:disabled) { color: #ef4444; border-color: rgba(239, 68, 68, .55); }
+.transferencia-upload-action { display: flex; justify-content: flex-end; margin-top: -8px; }
+
+.progress-section { display: flex; flex-direction: column; gap: 7px; }
+.progress-label { display: flex; justify-content: space-between; color: var(--text); font-size: 12px; }
+
+.transf-file-name {
+  max-width: 100%;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

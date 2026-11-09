@@ -37,7 +37,7 @@ bun init -y
 bun add elysia @elysiajs/cors postgres
 
 # inciar DockerC
-docker compose up --build
+
 
 --verificar en otra terminal 
 

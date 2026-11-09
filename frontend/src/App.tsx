@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Zap, Circle, Wifi } from "lucide-react";
 import FormularioPrueba from "./components/FormularioPrueba";
 import TransferenciaPrueba from "./components/TransferenciaPrueba";
+import ImportadorResultados from "./components/ImportadorResultados";
 import Dashboard from "./pages/Dashboard";
 import "./App.css";
 
@@ -81,6 +82,7 @@ export default function App() {
       <main id="app-main">
         <FormularioPrueba protocolo={protocolo} />
         <TransferenciaPrueba />
+        <ImportadorResultados />
         <Dashboard />
       </main>
     </div>

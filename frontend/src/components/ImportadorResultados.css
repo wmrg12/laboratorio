@@ -1,0 +1,46 @@
+#panel-importador { border-top: 3px solid #f59e0b; }
+
+.import-dropzone {
+  min-height: 118px;
+  box-sizing: border-box;
+  border: 1px dashed rgba(245, 158, 11, .58);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: var(--text-h);
+  text-align: center;
+  cursor: pointer;
+  background: rgba(245, 158, 11, .04);
+  transition: background .15s, border-color .15s;
+}
+
+.import-dropzone span { color: var(--text); font-size: 12px; }
+.import-dropzone code { font-family: var(--mono); color: #f59e0b; }
+.import-dropzone:hover, .import-dropzone:focus-visible, .import-dropzone--active { outline: none; border-color: #f59e0b; background: rgba(245, 158, 11, .1); }
+
+.import-files { display: flex; flex-direction: column; gap: 10px; }
+.import-files-header { display: flex; align-items: center; justify-content: space-between; color: var(--text); font-size: 13px; }
+.import-files-header button, .import-files li button { border: 0; background: transparent; color: var(--text); cursor: pointer; font: inherit; }
+.import-files-header button:hover:not(:disabled), .import-files li button:hover:not(:disabled) { color: #ef4444; }
+.import-files ul { list-style: none; padding: 0; margin: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.import-files li { min-height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--text-h); font-size: 13px; background: var(--bg); }
+.import-files li + li { border-top: 1px solid var(--border); }
+.import-files li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.import-files li button { display: grid; place-items: center; }
+.btn-importar { align-self: flex-end; }
+
+.import-report { display: flex; flex-direction: column; gap: 7px; border: 1px solid var(--border); background: var(--bg); border-radius: 10px; padding: 12px; }
+.import-report-title { display: flex; gap: 7px; align-items: center; color: #22c55e; font-size: 13px; font-weight: 600; }
+.import-report-item { display: flex; gap: 8px; margin: 0; color: var(--text); font-size: 12px; }
+.import-report-item strong { color: var(--text-h); font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.import-report-item--error span { color: #ef4444; }
+.import-report-item--omitido span { color: #f59e0b; }
+
+@media (max-width: 620px) {
+  .btn-importar { align-self: stretch; justify-content: center; }
+  .import-report-item { flex-direction: column; gap: 2px; }
+}
